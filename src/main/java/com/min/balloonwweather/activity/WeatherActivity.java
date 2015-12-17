@@ -14,6 +14,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.min.balloonwweather.R;
+import com.min.balloonwweather.util.HttpCallbackListener;
+import com.min.balloonwweather.util.HttpUtil;
+import com.min.balloonwweather.util.Utility;
 
 /**
  * Created by Administrator on 2015/12/17.
@@ -75,15 +78,65 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
                     queryWeatherInfo(weatherCode);
                 }
                 break;
+            default:
+                break;
         }
     }
 
-    private void showWeather() {
-    }
-
     private void queryWeatherCode(String countyCode) {
+        String address="http://www.weather.com.cn/data/list3/city"+countyCode+".xml";
+        queryFromServer(address,"weatherCode");
     }
 
     private void queryWeatherInfo(String weatherCode) {
+        String address="http://www.weather.com.cn/data/cityinfo/"+weatherCode+".html";
+        queryFromServer(address,"weatherCode");
+    }
+
+    private void queryFromServer(String address, final String type) {
+        HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
+            @Override
+            public void onFinish(String response) {
+                if("countyCode".equals(type)){
+                    if(!TextUtils.isEmpty(response)){
+                        String[] arr=response.split("\\|");
+                        if(arr!=null&&arr.length==2){
+                            String weatherOCde=arr[1];
+                            queryWeatherInfo(weatherOCde);
+                        }
+                    }
+                }else if("weatherCode".equals(type)){
+                    Utility.handleWeatherRepsonse(WeatherActivity.this,response);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showWeather();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        publishText.setText("同步失败");
+                    }
+                });
+            }
+        });
+    }
+
+    private void showWeather() {
+        SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
+        cityNameText.setText(prefs.getString("city_name",""));
+        temp1Text.setText(prefs.getString("temp1", ""));
+        temp2Text.setText(prefs.getString("temp2", ""));
+        weatherDespText.setText(prefs.getString("weather_desp", ""));
+        publishText.setText("今天" + prefs.getString("publish_time", "") + "发布");
+        currentDateText.setText(prefs.getString("current_date", ""));
+        weatherInfoLayout.setVisibility(View.VISIBLE);
+        cityNameText.setVisibility(View.VISIBLE);
     }
 }
