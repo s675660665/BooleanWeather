@@ -6,11 +6,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.min.balloonwweather.R;
@@ -23,6 +23,15 @@ import com.min.balloonwweather.util.Utility;
  * Created by Administrator on 2015/12/17.
  */
 public class WeatherActivity extends Activity implements View.OnClickListener {
+
+    /**
+     * 定义用于显示背景的布局
+     */
+    private RelativeLayout bgLayout;
+
+    /**
+     *用于显示天气信息
+     */
 
     private LinearLayout weatherInfoLayout;
     /**
@@ -64,6 +73,7 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.weather_layout);
         // 初始化各控件
+        bgLayout= (RelativeLayout) findViewById(R.id.bg_layout);
         weatherInfoLayout = (LinearLayout) findViewById(R.id.weather_info_layout);
         cityNameText = (TextView) findViewById(R.id.city_name);
         publishText = (TextView) findViewById(R.id.publish_text);
@@ -171,14 +181,46 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
      */
     private void showWeather() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String weatherDesp=prefs.getString("weather_desp","");
         cityNameText.setText( prefs.getString("city_name", ""));
         temp1Text.setText(prefs.getString("temp1", ""));
         temp2Text.setText(prefs.getString("temp2", ""));
-        weatherDespText.setText(prefs.getString("weather_desp", ""));
+        weatherDespText.setText(weatherDesp);
         publishText.setText("今天" + prefs.getString("publish_time", "") + "发布");
         currentDateText.setText(prefs.getString("current_date", ""));
         weatherInfoLayout.setVisibility(View.VISIBLE);
         cityNameText.setVisibility(View.VISIBLE);
+        if(weatherDesp.contains("晴")){
+            bgLayout.setBackgroundResource(R.drawable.bg_fine_day);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("多云")){
+            bgLayout.setBackgroundResource(R.drawable.bg_cloudy_day);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("阴")){
+            bgLayout.setBackgroundResource(R.drawable.bg_overcast);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("霾")){
+            bgLayout.setBackgroundResource(R.drawable.bg_haze);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("雨")){
+            bgLayout.setBackgroundResource(R.drawable.bg_rain);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("暴雨")){
+            bgLayout.setBackgroundResource(R.drawable.bg_thunder_storm);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("雪")){
+            bgLayout.setBackgroundResource(R.drawable.bg_snow);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("雾")){
+            bgLayout.setBackgroundResource(R.drawable.bg_fog);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("沙|尘")){
+            bgLayout.setBackgroundResource(R.drawable.bg_sand_storm);
+            bgLayout.invalidate();
+        }else if(weatherDesp.contains("风")){
+            bgLayout.setBackgroundResource(R.drawable.bg_na);
+            bgLayout.invalidate();
+        }
         Intent intent=new Intent(this, AutoUpdateService.class);
         startService(intent);
     }
